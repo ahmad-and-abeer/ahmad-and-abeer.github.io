@@ -766,7 +766,7 @@ html[data-namefont="nastaliq"]{
 /* the band is masked by the seal's own alpha, so it only lights the wax */
 .seal::after{
   content:""; position:absolute; inset:0; pointer-events:none;
-  -webkit-mask-image:url("assets/seal-silver.png");  mask-image:url("assets/seal-silver.png");
+  -webkit-mask-image:url("../../assets/seal-silver.png");  mask-image:url("../../assets/seal-silver.png");
   -webkit-mask-size:contain;   mask-size:contain;
   -webkit-mask-repeat:no-repeat; mask-repeat:no-repeat;
   -webkit-mask-position:center; mask-position:center;
@@ -835,7 +835,7 @@ html[data-namefont="nastaliq"]{
       <div class="wax-mark" aria-hidden="true"></div>
 
       <div class="seal" id="seal">
-        <img src="assets/seal-silver.png" alt="" draggable="false">
+        <img src="../../assets/seal-silver.png" alt="" draggable="false">
       </div>
     </div>
     </div>
@@ -905,7 +905,7 @@ const CONFIG = {
      "nastaliq" — Noto Nastaliq, flowing diagonal calligraphy
      Add ?font=nastaliq to any URL to preview the other one.        */
   nameFont: "nastaliq",
-  sealImage:   "assets/seal-silver.png", // the wax stamp on the flap
+  sealImage:   "../../assets/seal-silver.png", // the wax stamp on the flap
 
   /* --- date & time ----------------------------------------------
      The time below is the wall clock in `timeZone`, not the guest's own —
