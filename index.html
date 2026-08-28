@@ -531,16 +531,16 @@ html[data-namefont="nastaliq"]{
   transition:opacity .85s var(--ease-soft) var(--d,0s),
              transform 1s var(--ease-draw) var(--d,0s);
 }
-#invite.in .hero > *, #invite.in .details > .blk{opacity:1; transform:none}
+#invite.in .hero > *{opacity:1; transform:none}
 .hero > :nth-child(1){--d:.15s}   /* verse */
 .hero > :nth-child(2){--d:.45s}   /* rings */
 .hero > :nth-child(3){--d:.75s}   /* occasion line */
 .hero > :nth-child(4){--d:1.05s}  /* glyph */
 .hero > :nth-child(5){--d:1.35s}  /* names */
 .hero > :nth-child(6){--d:1.75s}  /* date & time */
-.details > .blk:nth-child(1){--d:2.15s}
-.details > .blk:nth-child(2){--d:2.45s}
-.details > .blk:nth-child(3){--d:2.75s}
+/* the detail blocks wait for the scroll instead: each one rises as it
+   enters the viewport (.vis comes from the IntersectionObserver below) */
+.details > .blk.vis{opacity:1; transform:none}
 @media (prefers-reduced-motion: reduce){
   .hero > *, .details > .blk{transform:none; transition-delay:0s}
 }
@@ -1349,6 +1349,31 @@ muteBtn.addEventListener("click", () => {
   muteBtn.setAttribute("aria-label", bgm.muted ? "تشغيل الموسيقى" : "كتم الموسيقى");
 });
 
+/* ---------- scroll reveal ----------
+   The detail blocks rise as they scroll into view. Whatever is already
+   on screen when the envelope opens keeps the hero's cadence (base);
+   everything below the fold waits for its own arrival instead.       */
+function watchBlocks(base){
+  const blocks = [...document.querySelectorAll(".details > .blk")];
+  if (!("IntersectionObserver" in window)){
+    blocks.forEach(b => b.classList.add("vis"));
+    return;
+  }
+  let first = true;
+  const io = new IntersectionObserver(entries => {
+    let i = 0;
+    for (const en of entries){
+      if (!en.isIntersecting) continue;
+      en.target.style.setProperty("--d", (first ? base + i*0.3 : i*0.12).toFixed(2) + "s");
+      en.target.classList.add("vis");
+      io.unobserve(en.target);
+      i++;
+    }
+    first = false;
+  }, {threshold:0.15, rootMargin:"0px 0px -10% 0px"});
+  blocks.forEach(b => io.observe(b));
+}
+
 function openInvitation(instant){
   if (opened) return;
   opened = true;
@@ -1358,6 +1383,7 @@ function openInvitation(instant){
     cover.remove();
     document.body.classList.remove("locked");
     $("#invite").classList.add("in");
+    watchBlocks(0);
     return;
   }
 
@@ -1373,6 +1399,7 @@ function openInvitation(instant){
     cover.classList.add("done");
     $("#invite").classList.add("in");
     document.body.classList.remove("locked");
+    watchBlocks(reduced ? 0 : 2.15);
   }, handover);
 
   setTimeout(() => cover.remove(), handover + 1600);
