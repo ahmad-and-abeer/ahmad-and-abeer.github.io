@@ -524,6 +524,27 @@ html[data-namefont="nastaliq"]{
 #invite > *{position:relative; z-index:1}
 #invite.in{opacity:1; transform:none}
 
+/* once the flap swings back, the content rises line by line — each piece
+   waits its turn (--d) so the page reads top to bottom, not all at once */
+.hero > *, .details > .blk{
+  opacity:0; transform:translateY(18px);
+  transition:opacity .85s var(--ease-soft) var(--d,0s),
+             transform 1s var(--ease-draw) var(--d,0s);
+}
+#invite.in .hero > *, #invite.in .details > .blk{opacity:1; transform:none}
+.hero > :nth-child(1){--d:.15s}   /* verse */
+.hero > :nth-child(2){--d:.45s}   /* rings */
+.hero > :nth-child(3){--d:.75s}   /* occasion line */
+.hero > :nth-child(4){--d:1.05s}  /* glyph */
+.hero > :nth-child(5){--d:1.35s}  /* names */
+.hero > :nth-child(6){--d:1.75s}  /* date & time */
+.details > .blk:nth-child(1){--d:2.15s}
+.details > .blk:nth-child(2){--d:2.45s}
+.details > .blk:nth-child(3){--d:2.75s}
+@media (prefers-reduced-motion: reduce){
+  .hero > *, .details > .blk{transform:none; transition-delay:0s}
+}
+
 /* (the palace watermark was replaced by the embossed floral stock) */
 
 /* (the floating bouquet flowers were removed) */
@@ -1303,11 +1324,15 @@ let opened = false;
    refuses (the ?open=1 path has no gesture), the control appears already
    muted and the first tap on it starts the music instead.             */
 const bgm = $("#bgm"), muteBtn = $("#mute");
-function startMusic(){
-  if (!CONFIG.musicSrc) return;
+/* the track loads while the guest is still looking at the envelope, so
+   play() on open is instant instead of waiting on the download */
+if (CONFIG.musicSrc){
   bgm.src = CONFIG.musicSrc;
   bgm.volume = CONFIG.musicVolume ?? 0.55;
   bgm.addEventListener("error", () => { muteBtn.hidden = true; }, {once:true});
+}
+function startMusic(){
+  if (!CONFIG.musicSrc) return;
   bgm.play().then(() => {
     muteBtn.hidden = false;
   }).catch(() => {
