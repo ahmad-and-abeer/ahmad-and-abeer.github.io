@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>احمد و عبير — خيارات الخط واللون</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Aref+Ruqaa:wght@400;700&family=Amiri:wght@400;700&family=Noto+Nastaliq+Urdu:wght@400;700&family=Gulzar&family=Reem+Kufi:wght@400;500;600&family=El+Messiri:wght@400;500;600&family=IBM+Plex+Sans+Arabic:wght@100;200;300&family=Alexandria:wght@100;200;300&family=Scheherazade+New:wght@400;700&family=Marhey:wght@300;400&family=Jost:wght@300;400&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --paper:#f8f6f1;
+  --ink:#3b352c;
+  --ink-soft:#7b7060;
+  --gold:#a3854c;
+  --wax:#7a2a30;
+}
+*{box-sizing:border-box}
+body{
+  margin:0; padding:0 0 80px;
+  background:radial-gradient(120% 60% at 50% 0%, #fffdf8 0%, var(--paper) 55%, #f0ece2 100%);
+  color:var(--ink);
+  font-family:"Jost",system-ui,sans-serif;
+  -webkit-font-smoothing:antialiased;
+}
+header{
+  padding:44px 24px 30px; text-align:center;
+  border-bottom:1px solid rgba(120,110,95,.16);
+  margin-bottom:14px;
+}
+header h1{margin:0 0 8px; font-size:15px; font-weight:400; letter-spacing:.24em; text-transform:uppercase; color:var(--ink-soft)}
+header p{margin:0; font-size:13px; color:var(--ink-soft); opacity:.8}
+
+section h2{
+  margin:46px 0 6px; padding:0 24px; text-align:center;
+  font-size:11px; font-weight:400; letter-spacing:.34em; text-transform:uppercase;
+  color:var(--ink-soft);
+}
+section .hint{margin:0 0 10px; padding:0 24px; text-align:center; font-size:12px; color:var(--ink-soft); opacity:.7}
+
+/* ---------- one specimen ---------- */
+.card{
+  max-width:760px; margin:0 auto;
+  padding:30px 26px 26px;
+  border-bottom:1px solid rgba(120,110,95,.13);
+  text-align:center;
+}
+.card .tag{
+  display:inline-block; margin-bottom:2px;
+  font-size:10px; letter-spacing:.26em; text-transform:uppercase;
+  color:var(--ink-soft); opacity:.75;
+  font-family:"Jost",sans-serif; direction:ltr;
+}
+.card .note{
+  margin:0 0 14px; font-size:12px; color:var(--ink-soft); opacity:.72;
+  font-family:"Jost",sans-serif; direction:rtl;
+}
+.names{
+  margin:0; color:var(--ink);
+  font-size:clamp(38px,8.5vw,80px);
+  line-height:1.55;
+  padding:.1em 0 .16em;
+}
+.names .amp{color:var(--wax); padding:0 .06em}
+.sub{
+  margin:8px 0 0; font-family:"Amiri",serif;
+  font-size:clamp(14px,3vw,18px); line-height:1.8; color:var(--ink-soft);
+}
+
+/* ---------- the candidates ---------- */
+.f-ruqaa   .names{font-family:"Aref Ruqaa",serif}
+.f-amiri   .names{font-family:"Amiri",serif; font-weight:700}
+.f-nastaliq .names{font-family:"Noto Nastaliq Urdu",serif; line-height:2.5; font-size:clamp(30px,6.5vw,62px)}
+.f-gulzar  .names{font-family:"Gulzar",serif; line-height:2.3; font-size:clamp(32px,7vw,66px)}
+.f-kufi    .names{font-family:"Reem Kufi",sans-serif; font-weight:400; letter-spacing:0}
+.f-messiri .names{font-family:"El Messiri",sans-serif; font-weight:500}
+.f-plex    .names{font-family:"IBM Plex Sans Arabic",sans-serif; font-weight:200}
+.f-alex    .names{font-family:"Alexandria",sans-serif; font-weight:200}
+.f-scheh   .names{font-family:"Scheherazade New",serif; font-weight:700; line-height:1.7}
+.f-marhey  .names{font-family:"Marhey",cursive; font-weight:300}
+
+/* ---------- colour swatches ---------- */
+.swatch{
+  max-width:760px; margin:0 auto; padding:26px;
+  border-bottom:1px solid rgba(120,110,95,.13); text-align:center;
+}
+.swatch .names{font-family:"Aref Ruqaa",serif}
+.c-ink     .names{color:#2b2823}
+.c-ink     .names .amp{color:#2b2823; opacity:.45}
+.c-wax     .names{color:#7a2a30}
+.c-wax     .names .amp{color:#7a2a30; opacity:.5}
+.c-gold    .names{background:linear-gradient(168deg,#d8bd85,#a3854c 44%,#8a6f3c);
+                  -webkit-background-clip:text; background-clip:text; color:transparent}
+.c-gold    .names .amp{padding:0 .06em}
+.c-bronze  .names{color:#7d6435}
+.c-bronze  .names .amp{color:#7d6435; opacity:.5}
+.c-olive   .names{color:#4e5344}
+.c-olive   .names .amp{color:#4e5344; opacity:.5}
+.c-taupe   .names{color:#8a7f70}
+.c-taupe   .names .amp{color:#8a7f70; opacity:.55}
+.c-duo     .names{color:#2b2823}
+.c-duo     .names .amp{color:#7a2a30}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>احمد و عبير</h1>
+  <p>خيارات الخط واللون للصفحة الرئيسية — اختر رقم الخط ورقم اللون</p>
+</header>
+
+<section>
+  <h2>Fonts</h2>
+  <p class="hint">كل الأمثلة بنفس اللون (حبري) حتى تقارن الخط وحده</p>
+
+  <div class="card f-ruqaa">
+    <span class="tag">01 · Aref Ruqaa</span>
+    <p class="note">الحالي — خط الرقعة الاحتفالي، تقليدي وفخم</p>
+    <p class="names">احمد<span class="amp"> و </span>عبير</p>
+  </div>
+
+  <div class="card f-nastaliq">
+    <span class="tag">02 · Noto Nastaliq</span>
+    <p class="note">خط النستعليق — انسيابي ودرامي، الأكثر فخامة</p>
+    <p class="names">احمد<span class="amp"> و </span>عبير</p>
+  </div>
+
+  <div class="card f-gulzar">
+    <span class="tag">03 · Gulzar</span>
+    <p class="note">نستعليق أخف وأنعم، أقل حدّة من الخيار الثاني</p>
+    <p class="names">احمد<span class="amp"> و </span>عبير</p>
+  </div>
+
+  <div class="card f-amiri">
+    <span class="tag">04 · Amiri Bold</span>
+    <p class="note">خط النسخ الكلاسيكي — هادئ، كتابي، بلا مبالغة</p>
+    <p class="names">احمد<span class="amp"> و </span>عبير</p>
+  </div>
+
+  <div class="card f-scheh">
+    <span class="tag">05 · Scheherazade New</span>
+    <p class="note">نسخ تقليدي أعرض وأوضح</p>
+    <p class="names">احمد<span class="amp"> و </span>عبير</p>
+  </div>
+
+  <div class="card f-kufi">
+    <span class="tag">06 · Reem Kufi</span>
+    <p class="note">كوفي هندسي حديث — الأقرب لروح التصميم المينيمال</p>
+    <p class="names">احمد<span class="amp"> و </span>عبير</p>
+  </div>
+
+  <div class="card f-messiri">
+    <span class="tag">07 · El Messiri</span>
+    <p class="note">معاصر بلمسة كلاسيكية — متوازن بين الاثنين</p>
+    <p class="names">احمد<span class="amp"> و </span>عبير</p>
+  </div>
+
+  <div class="card f-plex">
+    <span class="tag">08 · IBM Plex Sans Arabic 200</span>
+    <p class="note">رفيع جداً وحديث — الأكثر مينيمالية وهدوءاً</p>
+    <p class="names">احمد<span class="amp"> و </span>عبير</p>
+  </div>
+
+  <div class="card f-alex">
+    <span class="tag">09 · Alexandria 200</span>
+    <p class="note">هندسي رفيع — نظيف وعصري</p>
+    <p class="names">احمد<span class="amp"> و </span>عبير</p>
+  </div>
+
+  <div class="card f-marhey">
+    <span class="tag">10 · Marhey Light</span>
+    <p class="note">ودّي وعصري بانحناءات ناعمة</p>
+    <p class="names">احمد<span class="amp"> و </span>عبير</p>
+  </div>
+</section>
+
+<section>
+  <h2>Colours</h2>
+  <p class="hint">كل الأمثلة بخط الرقعة حتى تقارن اللون وحده</p>
+
+  <div class="swatch c-ink">
+    <span class="tag">A · Charcoal ink #2b2823</span>
+    <p class="names">احمد<span class="amp"> و </span>عبير</p>
+  </div>
+
+  <div class="swatch c-duo">
+    <span class="tag">B · Charcoal + wax-red conjunction</span>
+    <p class="names">احمد<span class="amp"> و </span>عبير</p>
+  </div>
+
+  <div class="swatch c-wax">
+    <span class="tag">C · Oxblood #7a2a30 — matches the seal</span>
+    <p class="names">احمد<span class="amp"> و </span>عبير</p>
+  </div>
+
+  <div class="swatch c-bronze">
+    <span class="tag">D · Flat bronze #7d6435</span>
+    <p class="names">احمد<span class="amp"> و </span>عبير</p>
+  </div>
+
+  <div class="swatch c-gold">
+    <span class="tag">E · Gold foil gradient — current</span>
+    <p class="names">احمد<span class="amp"> و </span>عبير</p>
+  </div>
+
+  <div class="swatch c-olive">
+    <span class="tag">F · Deep olive #4e5344</span>
+    <p class="names">احمد<span class="amp"> و </span>عبير</p>
+  </div>
+
+  <div class="swatch c-taupe">
+    <span class="tag">G · Soft taupe #8a7f70</span>
+    <p class="names">احمد<span class="amp"> و </span>عبير</p>
+  </div>
+</section>
+
+</body>
+</html>

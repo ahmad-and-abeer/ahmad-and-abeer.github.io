@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>يتشرفان بدعوتكم — خيارات الخط</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Nastaliq+Urdu:wght@400;500&family=Amiri:ital,wght@0,400;0,700;1,400&family=Scheherazade+New:wght@400;500&family=Noto+Naskh+Arabic:wght@400;500&family=Lateef:wght@300;400&family=Harmattan:wght@400&family=Reem+Kufi:wght@300;400;500&family=Noto+Kufi+Arabic:wght@300;400&family=El+Messiri:wght@400;500&family=Cairo:wght@200;300;400&family=Tajawal:wght@200;300;400&family=Almarai:wght@300;400&family=IBM+Plex+Sans+Arabic:wght@200;300;400&family=Alexandria:wght@200;300&family=Readex+Pro:wght@200;300&family=Aref+Ruqaa:wght@400&family=Gulzar&family=Jost:wght@300;400&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --paper:#f6f3ed;
+  --ink:#3b352c;
+  --ink-soft:#7b7060;
+  --wax:#7a2a30;
+  --line:rgba(92,84,72,.78);   /* the colour the line actually uses */
+}
+*{box-sizing:border-box}
+body{
+  margin:0; padding:0 0 90px;
+  background:var(--paper);
+  color:var(--ink);
+  font-family:"Jost",system-ui,sans-serif;
+  -webkit-font-smoothing:antialiased;
+}
+header{
+  padding:40px 24px 26px; text-align:center;
+  border-bottom:1px solid rgba(120,110,95,.16);
+}
+header h1{margin:0 0 6px; font-size:13px; font-weight:400; letter-spacing:.26em; text-transform:uppercase; color:var(--ink-soft)}
+header p{margin:0; font-size:12.5px; color:var(--ink-soft); opacity:.8; line-height:1.7}
+
+.group{
+  margin:38px 0 6px; padding:0 24px; text-align:center;
+  font-size:10.5px; font-weight:400; letter-spacing:.3em; text-transform:uppercase;
+  color:var(--ink-soft); opacity:.85;
+}
+.group span{display:block; margin-top:5px; font-size:12px; letter-spacing:0; text-transform:none; opacity:.75}
+
+.card{
+  max-width:620px; margin:0 auto;
+  padding:24px 26px 30px;
+  border-bottom:1px solid rgba(120,110,95,.13);
+  text-align:center;
+}
+.tag{
+  display:block; margin-bottom:16px;
+  font-size:10px; letter-spacing:.24em; text-transform:uppercase;
+  color:var(--ink-soft); opacity:.7;
+  font-family:"Jost",sans-serif; direction:ltr;
+}
+/* the names are fixed — only the line beneath changes */
+.nm{
+  margin:0; color:var(--wax);
+  font-family:"Noto Nastaliq Urdu",serif;
+  font-size:clamp(30px,6.4vw,46px); line-height:1.62;
+  padding:.1em 0 .22em;
+}
+.nm i{font-style:normal; opacity:.5}
+.ln{
+  margin:10px 0 0; color:var(--line);
+  font-size:clamp(17px,3.4vw,23px); line-height:1.7;
+}
+
+/* ---- naskh: traditional, contrasts the Nastaliq ---- */
+.f01 .ln{font-family:"Amiri",serif}
+.f02 .ln{font-family:"Noto Naskh Arabic",serif}
+.f03 .ln{font-family:"Scheherazade New",serif}
+.f04 .ln{font-family:"Lateef",serif; font-size:clamp(20px,4.2vw,28px)}
+.f05 .ln{font-family:"Harmattan",serif; font-size:clamp(19px,4vw,26px)}
+/* ---- matching the names' own hand ---- */
+.f06 .ln{font-family:"Noto Nastaliq Urdu",serif; font-size:clamp(14px,2.9vw,19px); line-height:2.1}
+.f07 .ln{font-family:"Gulzar",serif; font-size:clamp(15px,3vw,20px); line-height:2}
+.f08 .ln{font-family:"Aref Ruqaa",serif}
+/* ---- kufi: geometric ---- */
+.f09 .ln{font-family:"Reem Kufi",sans-serif; font-weight:300}
+.f10 .ln{font-family:"Noto Kufi Arabic",sans-serif; font-weight:300; font-size:clamp(15px,3vw,20px)}
+/* ---- modern sans: quiet and minimal ---- */
+.f11 .ln{font-family:"IBM Plex Sans Arabic",sans-serif; font-weight:300; font-size:clamp(15px,3vw,20px)}
+.f12 .ln{font-family:"Tajawal",sans-serif; font-weight:300; font-size:clamp(15px,3vw,20px)}
+.f13 .ln{font-family:"Almarai",sans-serif; font-weight:300; font-size:clamp(15px,3vw,20px)}
+.f14 .ln{font-family:"Alexandria",sans-serif; font-weight:200; font-size:clamp(14px,2.9vw,19px)}
+.f15 .ln{font-family:"Readex Pro",sans-serif; font-weight:200; font-size:clamp(15px,3vw,20px)}
+.f16 .ln{font-family:"El Messiri",sans-serif; font-weight:400}
+.f17 .ln{font-family:"Cairo",sans-serif; font-weight:300; font-size:clamp(15px,3vw,20px)}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>يتشرفان بدعوتكم</h1>
+  <p>الأسماء ثابتة بخط النستعليق — يتغيّر السطر الذي تحتها فقط</p>
+</header>
+
+<p class="group">Naskh — traditional, contrasts the names
+  <span>خط النسخ — تقليدي، يتباين مع خط الأسماء</span></p>
+
+<div class="card f01"><span class="tag">01 · Amiri &nbsp;— current</span>
+  <p class="nm">احمد<i> و </i>عبير</p><p class="ln">يتشرفان بدعوتكم</p></div>
+<div class="card f02"><span class="tag">02 · Noto Naskh Arabic</span>
+  <p class="nm">احمد<i> و </i>عبير</p><p class="ln">يتشرفان بدعوتكم</p></div>
+<div class="card f03"><span class="tag">03 · Scheherazade New</span>
+  <p class="nm">احمد<i> و </i>عبير</p><p class="ln">يتشرفان بدعوتكم</p></div>
+<div class="card f04"><span class="tag">04 · Lateef &nbsp;— light, delicate</span>
+  <p class="nm">احمد<i> و </i>عبير</p><p class="ln">يتشرفان بدعوتكم</p></div>
+<div class="card f05"><span class="tag">05 · Harmattan</span>
+  <p class="nm">احمد<i> و </i>عبير</p><p class="ln">يتشرفان بدعوتكم</p></div>
+
+<p class="group">Matching the names' own hand
+  <span>نفس عائلة خط الأسماء — انسجام تام</span></p>
+
+<div class="card f06"><span class="tag">06 · Noto Nastaliq &nbsp;— same hand</span>
+  <p class="nm">احمد<i> و </i>عبير</p><p class="ln">يتشرفان بدعوتكم</p></div>
+<div class="card f07"><span class="tag">07 · Gulzar &nbsp;— softer nastaliq</span>
+  <p class="nm">احمد<i> و </i>عبير</p><p class="ln">يتشرفان بدعوتكم</p></div>
+<div class="card f08"><span class="tag">08 · Aref Ruqaa</span>
+  <p class="nm">احمد<i> و </i>عبير</p><p class="ln">يتشرفان بدعوتكم</p></div>
+
+<p class="group">Kufi — geometric
+  <span>الخط الكوفي — هندسي وحديث</span></p>
+
+<div class="card f09"><span class="tag">09 · Reem Kufi Light</span>
+  <p class="nm">احمد<i> و </i>عبير</p><p class="ln">يتشرفان بدعوتكم</p></div>
+<div class="card f10"><span class="tag">10 · Noto Kufi Arabic Light</span>
+  <p class="nm">احمد<i> و </i>عبير</p><p class="ln">يتشرفان بدعوتكم</p></div>
+
+<p class="group">Modern sans — quiet and minimal
+  <span>خطوط حديثة — هادئة ومينيمالية</span></p>
+
+<div class="card f11"><span class="tag">11 · IBM Plex Sans Arabic 300</span>
+  <p class="nm">احمد<i> و </i>عبير</p><p class="ln">يتشرفان بدعوتكم</p></div>
+<div class="card f12"><span class="tag">12 · Tajawal Light</span>
+  <p class="nm">احمد<i> و </i>عبير</p><p class="ln">يتشرفان بدعوتكم</p></div>
+<div class="card f13"><span class="tag">13 · Almarai Light</span>
+  <p class="nm">احمد<i> و </i>عبير</p><p class="ln">يتشرفان بدعوتكم</p></div>
+<div class="card f14"><span class="tag">14 · Alexandria 200</span>
+  <p class="nm">احمد<i> و </i>عبير</p><p class="ln">يتشرفان بدعوتكم</p></div>
+<div class="card f15"><span class="tag">15 · Readex Pro 200</span>
+  <p class="nm">احمد<i> و </i>عبير</p><p class="ln">يتشرفان بدعوتكم</p></div>
+<div class="card f16"><span class="tag">16 · El Messiri</span>
+  <p class="nm">احمد<i> و </i>عبير</p><p class="ln">يتشرفان بدعوتكم</p></div>
+<div class="card f17"><span class="tag">17 · Cairo Light</span>
+  <p class="nm">احمد<i> و </i>عبير</p><p class="ln">يتشرفان بدعوتكم</p></div>
+
+</body>
+</html>

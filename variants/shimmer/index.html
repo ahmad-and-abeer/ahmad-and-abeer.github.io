@@ -1,0 +1,1305 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Wedding Invitation</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Aref+Ruqaa:wght@400;700&family=Noto+Nastaliq+Urdu:wght@400;700&family=Readex+Pro:wght@200;300;400&family=Playfair+Display:ital,wght@0,400;0,500;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+
+<style>
+/* ==================================================================
+   PALETTE & TYPE
+   ================================================================== */
+:root{
+  /* warm ivory stock, lit softly and evenly from above */
+  --p-hi:#f2ebdd;         /* where the light lands */
+  --p-mid:#efece5;        /* the body of the sheet */
+  --p-lo:#ded3bd;         /* falling away from the light */
+  --p-edge:#c9bca1;       /* creases and cut edges */
+  --surface:#e2dfd7;      /* what the envelope rests on (desktop only) */
+
+  --paper:#f8f6f1;        /* the letter, and the invitation page */
+  --ink:#3b352c;
+  --ink-soft:#7b7060;
+  --gold:#a3854c;         /* the foil script */
+  --gold-hi:#d8bd85;
+  --wax:#7a2a30;          /* sampled from the seal, used for ampersands */
+
+  /* Aref Ruqaa is modelled on Ruqaa, the ceremonial calligraphic hand used
+     on Arabic wedding invitations. Readex Pro carries the supporting text:
+     a modern Arabic sans, so the calligraphy reads as deliberate.
+     Nastaliq is the alternative — see CONFIG.nameFont.                    */
+  --f-ar-display:"Aref Ruqaa", serif;
+  --f-ar-body:"Readex Pro", system-ui, "Helvetica Neue", sans-serif;
+  --name-lh:1.7;          /* Nastaliq needs far more leading than Ruqaa */
+  --name-lh1:1.3;         /* the same, for a single line in tight space */
+  --name-scale:1;
+  --f-display:"Playfair Display", Georgia, serif;
+  --f-ui:"Jost", "Helvetica Neue", Arial, sans-serif;
+
+  /* ---------- envelope geometry, as fractions of the envelope ----------
+     The flap is a pentagon: it runs straight down both sides to the
+     shoulder, then angles in to the tip. Below it the bottom flap folds
+     up to a peak, its edges radiating down to the sides.               */
+  --shoulder:26%;         /* where the flap's diagonals begin */
+  --flap:55%;             /* the flap's tip */
+  --peak:52.5%;           /* peak of the bottom flap, just under the tip */
+  --peak-out:72%;       /* where that flap's edges reach the sides */
+  --corner:0px;           /* square while full-bleed; rounded in card mode */
+
+  /* --u is the envelope's width in px — JS keeps it current, and every
+     size below is derived from it, so the design scales as one piece.
+     --tu is the same but capped by the height of the band beneath the
+     flap, so the wording always fits on short screens.                 */
+  --u:380px;
+  --tu:380px;
+
+  --ease:cubic-bezier(.22,.61,.36,1);
+  --ease-soft:cubic-bezier(.4,0,.2,1);
+  /* the flap is stiff card: it resists, swings, then settles without bounce */
+  --ease-flap:cubic-bezier(.36,.03,.22,1);
+  /* the letter is drawn out by hand: quick pickup, long soft landing */
+  --ease-draw:cubic-bezier(.16,.78,.28,1);
+  /* wax has no spring in it — once it lets go it only accelerates away */
+  --ease-seal:cubic-bezier(.32,0,.24,1);
+
+  /* ---------- paper texture tiles ----------
+     Raw fractal noise, desaturated, contrast-stretched around a 0.5 mean
+     so blending adds variation without shifting the panel's tone.
+     (feDiffuseLighting renders nearly flat in Chrome — do not use it.)  */
+  --relief-coarse:url("data:image/svg+xml;utf8,\
+<svg xmlns='http://www.w3.org/2000/svg' width='620' height='620'>\
+<filter id='c' x='0' y='0' width='100%25' height='100%25'><feTurbulence type='fractalNoise' stitchTiles='stitch' baseFrequency='0.05' numOctaves='5' seed='14'/>\
+<feColorMatrix type='saturate' values='0'/>\
+<feComponentTransfer><feFuncR type='linear' slope='1.14' intercept='-.07'/>\
+<feFuncG type='linear' slope='1.14' intercept='-.07'/><feFuncB type='linear' slope='1.14' intercept='-.07'/>\
+<feFuncA type='linear' slope='0' intercept='1'/></feComponentTransfer>\
+</filter><rect width='620' height='620' filter='url(%23c)'/></svg>");
+
+  --relief-fine:url("data:image/svg+xml;utf8,\
+<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'>\
+<filter id='f' x='0' y='0' width='100%25' height='100%25'><feTurbulence type='fractalNoise' stitchTiles='stitch' baseFrequency='0.5' numOctaves='3' seed='7'/>\
+<feColorMatrix type='saturate' values='0'/>\
+<feComponentTransfer><feFuncR type='linear' slope='1.12' intercept='-.06'/>\
+<feFuncG type='linear' slope='1.12' intercept='-.06'/><feFuncB type='linear' slope='1.12' intercept='-.06'/>\
+<feFuncA type='linear' slope='0' intercept='1'/></feComponentTransfer>\
+</filter><rect width='200' height='200' filter='url(%23f)'/></svg>");
+
+
+}
+
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;
+  background:var(--paper);
+  color:var(--ink);
+  font-family:var(--f-ui);
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+}
+body.locked{overflow:hidden}
+
+/* ---------- the cotton surface ----------
+   All texture lives in each panel's own background-image list, blended
+   with background-blend-mode. (mix-blend-mode is unreliable inside a
+   preserve-3d subtree, which is exactly where these panels live — the
+   .stock spans now carry only plain shading gradients.)
+     flecks    — inclusions pressed into the pulp     (multiply)
+     fine      — the tooth of the surface             (overlay)
+     coarse    — cottony lumps and slubs              (soft-light)
+     fibre     — long fibres running through the pulp (soft-light)
+     coarse@3x — the broad undulation of the sheet    (soft-light)  */
+:root{
+  --tex:var(--relief-fine), var(--relief-coarse), var(--relief-coarse);
+  --tex-size:200px 200px, 620px 620px, 1480px 1480px;
+  --tex-blend:overlay, soft-light, soft-light, normal;
+}
+.stock{position:absolute; inset:0; pointer-events:none}
+
+/* ---------- the calligraphic hand used for the names ----------
+   Nastaliq sits on a steep diagonal baseline with deep descenders, so it
+   needs roughly half again the leading and a smaller size to occupy the
+   same optical space as Ruqaa. Switch with CONFIG.nameFont.            */
+html[data-namefont="nastaliq"]{
+  --f-ar-display:"Noto Nastaliq Urdu", "Aref Ruqaa", serif;
+  --name-lh:2.1;
+  --name-lh1:1.62;
+  --name-scale:1.06;      /* its glyphs sit small in the em box */
+}
+
+/* ==================================================================
+   COVER
+   ================================================================== */
+#cover{
+  position:fixed; inset:0; z-index:100;
+  background:var(--p-mid);
+  overflow:hidden;
+  perspective:2200px;
+  perspective-origin:50% 34%;
+  cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+  transition:opacity 1s var(--ease-soft), transform 1s var(--ease-soft);
+}
+#cover:focus-visible{outline:none}
+
+/* phones: the envelope is the screen. See the media query below for
+   wider screens, where it becomes a portrait card on a surface.      */
+.env-frame{position:absolute; inset:0}
+
+/* NOTE: no preserve-3d anywhere in this subtree — Chrome silently drops
+   filter, mix-blend-mode and friends inside one. The flap still animates
+   in 3D through .envelope's perspective; stacking is plain DOM order:
+   sheet → sides → letter → pocket → face-text → flap → seal.           */
+.env-tilt{position:absolute; inset:0; will-change:transform}
+.envelope{
+  position:absolute; inset:0;
+  perspective:1400px;
+  perspective-origin:50% 0%;        /* looking at the hinge */
+  transform:scale(var(--env-scale,1));
+  transition:transform 1.3s var(--ease);
+}
+.env-face{position:absolute; inset:0}
+
+/* ---------- the envelope body ----------
+   The three panels are deliberately NOT the same colour. Each folded layer
+   sits at a different height under the same light, so the stack reads
+   darkest at the bottom (this sheet) to lightest on top (the flap). That
+   tonal separation is what makes the folds legible, far more than the
+   shadows on their own.                                                  */
+.env-sheet{
+  border-radius:var(--corner);
+  /* the big relief tile, blended into the colour itself: the broad
+     undulation of a sheet that is never optically flat */
+  background-image:
+    var(--tex),
+    radial-gradient(88% 62% at 50% 16%, #edeae2 0%, #e6e3da 52%, #dcd8cd 100%);
+  background-size:var(--tex-size), auto;
+  background-blend-mode:var(--tex-blend);
+  }
+/* the slivers of this sheet visible between the flap edges sit deepest */
+.env-sheet .stock{
+  background-image:
+    radial-gradient(46% 26% at 0% 60%,   rgba(96,92,84,.05), transparent 70%),
+    radial-gradient(46% 26% at 100% 60%, rgba(96,92,84,.05), transparent 70%);
+}
+
+
+/* ---------- bottom flap, folded up to a peak ---------- */
+.env-pocket{
+  /* JS replaces this with a rounded path() */
+  clip-path:polygon(0 100%, 0 var(--peak-out), 50% var(--peak), 100% var(--peak-out), 100% 100%);
+  background-image:
+    var(--tex),
+    radial-gradient(96% 120% at 50% 0%, #f5f2ec 0%, #f0ede6 46%, #e6e2d8 100%);
+  background-size:var(--tex-size), auto;
+  background-position:30px 61px, 64px 141px, -420px -260px, 0 0;
+  background-blend-mode:var(--tex-blend);
+}
+/* the side flaps folded beneath press faint ridges through the pocket
+   at the bottom corners — the only place they show, as in real stock */
+.env-pocket .stock::before,
+.env-pocket .stock::after{
+  content:""; position:absolute; bottom:0; width:30%; height:15%;
+}
+.env-pocket .stock::before{
+  left:0;
+  background:linear-gradient(to bottom right,
+    transparent calc(50% - 1.5px), rgba(96,92,84,.11) calc(50% - .5px),
+    rgba(255,254,248,.45) calc(50% + .7px), transparent calc(50% + 1.8px));
+}
+.env-pocket .stock::after{
+  right:0;
+  background:linear-gradient(to bottom left,
+    transparent calc(50% - 1.5px), rgba(120,96,58,.14) calc(50% - .5px),
+    rgba(255,254,248,.45) calc(50% + .7px), transparent calc(50% + 1.8px));
+}
+
+/* clip-path clips AFTER filter, so shadows must live on an unclipped
+   wrapper around each clipped panel — never on the panel itself.
+   These cast upward, because the pocket's cut edges face up.         */
+.shadow-pocket{
+  position:absolute; inset:0;
+  filter:drop-shadow(0 -1.5px 0 rgba(255,254,250,.95))
+         drop-shadow(0 -2px 2px rgba(82,78,70,.34))
+         drop-shadow(0 -5px 8px rgba(82,78,70,.14));
+}
+
+/* ---------- the letter, tucked inside ---------- */
+.letter{
+  position:absolute; left:11%; width:78%; height:46%; bottom:6%;
+  transform:translateY(3%);      /* tucked slightly down into the pocket */
+  background-image:var(--tex), linear-gradient(#fdfcfa,#f6f4ef);
+  background-size:var(--tex-size), auto;
+  background-blend-mode:var(--tex-blend);
+  border-radius:3px;
+  box-shadow:0 8px 26px rgba(96,76,44,.20);
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:calc(var(--u)*.035); padding:6% 9%; text-align:center;
+  opacity:0;
+  transition:transform 1.05s var(--ease), opacity .25s linear;
+  will-change:transform,opacity;
+}
+.letter .l-eyebrow{
+  font-family:var(--f-ar-body); font-weight:300;
+  font-size:calc(var(--u)*.038); line-height:1.8;
+  color:var(--ink-soft);
+}
+.letter .l-names{
+  font-family:var(--f-ar-display); font-weight:400;
+  font-size:calc(var(--u)*.125 * var(--name-scale));
+  line-height:var(--name-lh); color:var(--wax);
+  padding:.08em 0 .14em;
+}
+.letter .l-names .amp{color:var(--wax); opacity:.5; padding:0 .1em}
+.letter .l-rule{width:calc(var(--u)*.15); height:1px; background:var(--gold); opacity:.65}
+.letter .l-date{
+  font-family:var(--f-ar-body); font-weight:300;
+  font-size:calc(var(--u)*.032); line-height:1.7;
+  color:var(--ink-soft);
+}
+
+/* ---------- the top flap ----------
+   Full-frame element, clipped to a pentagon: straight down both sides
+   to the shoulder, then in to a rounded tip.                          */
+/* the wrapper carries the shadow AND the open rotation, so the shadow
+   swings with the paper; the clipped panel inside carries the surface */
+.shadow-flap{
+  position:absolute; inset:0;
+  transform-origin:50% 0%;
+  transform:rotateX(0deg);
+  backface-visibility:visible;   /* the flap's underside shows as it opens */
+  /* the topmost sheet, so it throws the strongest shadow: lit cut edge,
+     tight contact shadow, then a soft ambient one falling downward */
+  filter:drop-shadow(0 1.5px 0 rgba(255,254,250,.95))
+         drop-shadow(0 2px 2px rgba(82,78,70,.38))
+         drop-shadow(0 6px 9px rgba(82,78,70,.17));
+  will-change:transform;
+}
+.env-flap{
+  position:absolute; inset:0;
+  clip-path:polygon(0 0, 100% 0, 100% var(--shoulder), 50% var(--flap), 0 var(--shoulder));
+  background-image:
+    var(--tex),
+    linear-gradient(176deg,#f8f6f1 0%,#f5f2ec 44%,#efece4 74%,#e7e3d9 100%);
+  background-size:var(--tex-size), auto;
+  background-position:187px 203px, 201px 57px, -160px -680px, 0 0;
+  background-blend-mode:var(--tex-blend);
+}
+.env-flap .stock{
+  background-image:
+    /* the crease at the fold, and the tip lifting away from the body */
+    linear-gradient(180deg, rgba(96,92,84,.12) 0%, rgba(96,92,84,.03) 5%,
+                            transparent 14%, transparent 72%,
+                            rgba(96,92,84,.05) 91%, rgba(96,92,84,.10) 100%),
+    /* the paper bows very slightly along its two long cut edges */
+    linear-gradient(90deg,  rgba(96,92,84,.05) 0%, transparent 5%,
+                            transparent 95%, rgba(96,92,84,.05) 100%);
+}
+
+/* ---------- wax seal ---------- */
+.seal{
+  position:absolute; left:50%; top:var(--flap);
+  will-change:transform,opacity,filter;
+  width:clamp(88px,26%,210px); aspect-ratio:1;
+  translate:-50% -50%;
+  transform:rotate(-3.5deg);     /* nobody stamps perfectly straight */
+  z-index:5;
+  transition:transform .6s var(--ease), opacity .5s linear;
+}
+/* The paper dishes slightly where the hot wax was pressed into it. This is
+   an impression in the flap, not part of the seal, so it lives outside .seal
+   and stays behind for a moment after the wax has been lifted away. */
+.wax-mark{
+  position:absolute; left:50%; top:var(--flap);
+  width:clamp(88px,26%,210px); aspect-ratio:1;
+  translate:-50% -50%;
+  transform:rotate(-3.5deg) scale(1.18);
+  z-index:4; pointer-events:none;
+  border-radius:50%;
+  background:radial-gradient(50% 50% at 50% 54%,
+      rgba(90,86,78,.22) 0%, rgba(90,86,78,.08) 56%, transparent 74%);
+  filter:blur(2px);
+  will-change:transform,opacity;
+}
+.seal img{
+  position:relative;             /* above the depression */
+  display:block; width:100%; height:100%;
+  object-fit:contain;
+  filter:drop-shadow(0 2px 2px rgba(70,66,60,.28))
+         drop-shadow(0 9px 16px rgba(70,66,60,.22));
+}
+
+/* ---------- the calligraphy, letterpressed under the seal ---------- */
+.face-text{
+  position:absolute; left:50%;
+  top:calc(var(--flap) + 9%);
+  bottom:calc(5% + env(safe-area-inset-bottom, 0px));
+  translate:-50% 0;
+  width:92%; text-align:center;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:calc(var(--tu)*.04);
+  transition:opacity .5s var(--ease-soft), transform .8s var(--ease);
+}
+/* Flat colour, not a metallic gradient — with a light edge below and a
+   dark one above, so both lines read as letterpress pressed into the
+   paper rather than foil printed on top of it.                        */
+.face-text .names,
+.face-text .welcome{
+  margin:0;
+  filter:drop-shadow(0 1px 0 rgba(255,253,248,.75))
+         drop-shadow(0 -1px .5px rgba(72,60,44,.22));
+}
+.face-text .names{color:var(--wax)}              /* oxblood, like the seal */
+.face-text .welcome{color:rgba(92,84,72,.78)}    /* quiet ink underneath */
+.face-text .names{
+  font-family:var(--f-ar-display); font-weight:400;
+  font-size:calc(var(--tu)*.132 * var(--name-scale));
+  line-height:var(--name-lh1);
+  /* room above for the diacritics, below for the tails */
+  padding:.1em 0 .22em;
+}
+.face-text .names .amp{color:var(--wax); opacity:.5; padding:0 .06em}
+.face-text .welcome{
+  font-family:var(--f-ar-body); font-weight:200;
+  font-size:calc(var(--tu)*.062); line-height:1.75;
+  letter-spacing:.01em;
+  white-space:pre-line;
+}
+.face-text .tap{
+  margin:0;
+  display:inline-flex; align-items:center; gap:calc(var(--tu)*.03);
+  font-family:var(--f-ar-body); font-weight:300;
+  font-size:calc(var(--tu)*.034); line-height:1.6;
+  color:rgba(107,90,58,.5);
+  animation:breathe 3.4s ease-in-out infinite;
+}
+.face-text .tap::before,.face-text .tap::after{
+  content:""; width:calc(var(--tu)*.065); height:1px; background:currentColor; opacity:.55;
+}
+@keyframes breathe{0%,100%{opacity:.48}50%{opacity:1}}
+
+/* ---------- light over the whole scene ---------- */
+.lighting{
+  position:absolute; inset:0; pointer-events:none; z-index:8;
+  background:radial-gradient(70% 52% at 50% 8%, rgba(255,253,248,.16) 0%, transparent 66%);
+  mix-blend-mode:soft-light;
+}
+.vignette{
+  position:absolute; inset:0; pointer-events:none; z-index:8;
+  background:radial-gradient(112% 88% at 50% 34%, transparent 60%, rgba(96,92,84,.06) 100%);
+}
+.dust{position:absolute; inset:0; pointer-events:none; overflow:hidden; z-index:9}
+.dust i{
+  position:absolute; bottom:-12px; border-radius:50%;
+  background:rgba(255,250,232,.9);
+  filter:blur(.5px);
+  animation:rise linear infinite;
+}
+@keyframes rise{
+  0%   {transform:translateY(0) translateX(0); opacity:0}
+  12%  {opacity:.45}
+  85%  {opacity:.3}
+  100% {transform:translateY(-104vh) translateX(var(--dx)); opacity:0}
+}
+
+/* ==================================================================
+   OPEN SEQUENCE
+   ================================================================== */
+/* Every beat here is a keyframe animation rather than a transition. A
+   transition can only draw one easing curve between two values, which is why
+   the seal used to blink out mid-flight and the flap swung at one unbroken
+   rate. Broken into stages — with a timing function on each — the wax can
+   resist, let go, then accelerate away, and the flap can hesitate, swing,
+   and settle. Percentages below are of that animation's own duration.     */
+#cover.opening{cursor:default}
+
+/* 0.00–0.82s  the wax gives: it strains against the paper, releases, tilts
+   up off the flap and dissolves as it goes, rather than simply fading.
+   It has to be clear of the paper before the flap really moves — the seal
+   sits outside .shadow-flap (no preserve-3d here, see the note above) so it
+   cannot swing with it, and a half-faded seal over an opening flap reads
+   as a sticker. The flap's resist phase below buys exactly this window.  */
+#cover.opening .seal{
+  animation:seal-break .82s var(--ease-seal) forwards;
+}
+@keyframes seal-break{
+  0%{
+    transform:rotate(-3.5deg) translateY(0) scale(1);
+    opacity:1; filter:blur(0px);
+    animation-timing-function:cubic-bezier(.5,0,.75,.4);   /* holds, then gives */
+  }
+  20%{
+    transform:rotate(-5.4deg) translateY(calc(var(--u)*-.004)) scale(1.028);
+    opacity:1; filter:blur(0px);
+    animation-timing-function:cubic-bezier(.2,.5,.3,1);    /* it lets go */
+  }
+  52%{
+    transform:rotate(-11deg) translateY(calc(var(--u)*-.042)) scale(.985);
+    opacity:.72; filter:blur(.6px);
+    animation-timing-function:cubic-bezier(.4,0,.55,1);
+  }
+  100%{
+    transform:rotate(-19deg) translateY(calc(var(--u)*-.115)) scale(.87);
+    opacity:0; filter:blur(3px);
+  }
+}
+/* 0.16–0.86s  the impression left in the paper holds while the wax is
+   already halfway gone, then relaxes out of the sheet */
+#cover.opening .wax-mark{
+  animation:mark-relax .7s .16s cubic-bezier(.55,0,.45,1) forwards;
+}
+@keyframes mark-relax{
+  0%  {opacity:1;  transform:rotate(-3.5deg) scale(1.18)}
+  44% {opacity:.8; transform:rotate(-3.5deg) scale(1.22)}
+  100%{opacity:0;  transform:rotate(-3.5deg) scale(1.3)}
+}
+
+/* 0.10s  the wording sinks away with it */
+#cover.opening .face-text{
+  opacity:0; transform:translateY(calc(var(--tu)*.035)) scale(.99);
+  transition:opacity .58s .1s var(--ease-soft),
+             transform .92s .1s var(--ease);
+}
+
+/* 0.32–1.92s  the flap presses back against its own fold for the first third
+   of a second (covering the seal's exit), swings through, runs a little past
+   flat, and settles */
+#cover.opening .shadow-flap{
+  animation:flap-open 1.6s .32s forwards;
+}
+@keyframes flap-open{
+  0%{
+    transform:rotateX(0deg);
+    animation-timing-function:cubic-bezier(.4,0,.5,1);     /* stiff card resists */
+  }
+  21%{
+    transform:rotateX(3.6deg);                             /* ~0.66s: the fold gives */
+    animation-timing-function:cubic-bezier(.34,0,.26,1);   /* the long swing */
+  }
+  70%{
+    transform:rotateX(-170deg);
+    animation-timing-function:cubic-bezier(.35,0,.4,1);
+  }
+  87%{
+    transform:rotateX(-181.5deg);                          /* a touch past flat */
+    animation-timing-function:cubic-bezier(.3,0,.3,1);
+  }
+  100%{transform:rotateX(-176.5deg)}                       /* and it comes to rest */
+}
+
+/* 1.15–2.45s  the card is drawn out as the flap clears the last of its arc,
+   fading up over the first third of the pull */
+#cover.opening .letter{
+  opacity:1;
+  transform:translateY(-88%) scale(1.03);
+  transition:transform 1.3s 1.15s var(--ease-draw),
+             opacity .46s 1.17s var(--ease-soft);
+}
+#cover.opening .envelope{
+  --env-scale:.985;
+  transition:transform 1.8s .32s var(--ease-soft);
+}
+
+/* 2.55s  the cover recedes rather than blurring — a full-screen blur is
+   expensive enough to drop frames on a phone mid-transition. It leaves on
+   the same curve the card arrived on, so the handover reads as one move.  */
+#cover.done{
+  opacity:0; transform:scale(1.022); pointer-events:none;
+  transition:opacity 1s var(--ease-soft), transform 1.35s var(--ease-soft);
+}
+
+/* ==================================================================
+   WIDER SCREENS — a portrait card resting on a surface
+   ================================================================== */
+@media (min-aspect-ratio:3/4){
+  :root{--corner:18px}    /* the envelope is an object on a surface here */
+  #cover{background:
+    radial-gradient(78% 60% at 50% 12%, #ecEae3 0%, var(--surface) 52%, #d5d2c9 100%)}
+  .env-frame{
+    inset:auto; left:50%; top:50%;
+    translate:-50% -50%;
+    height:min(94svh,980px);
+    aspect-ratio:.615;
+    filter:drop-shadow(0 26px 46px rgba(92,72,42,.30));
+  }
+  .dust{z-index:9}
+}
+
+/* ==================================================================
+   INVITATION (placeholder — sections come next)
+   ================================================================== */
+#invite{
+  position:relative; min-height:100%;
+  opacity:0; transform:scale(.975);
+  transition:opacity 1.05s var(--ease-soft), transform 1.5s var(--ease-draw);
+}
+#invite.in{opacity:1; transform:none}
+
+/* Just under a full screen, so the countdown's first line shows below the
+   fold — the page reads as having more to it without needing a scroll cue. */
+.hero{
+  position:relative; min-height:88svh;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:clamp(12px,2.4vh,22px);
+  padding:clamp(40px,7vh,80px) 24px clamp(30px,5vh,58px);
+  text-align:center;
+  background:radial-gradient(120% 80% at 50% 0%, #fffdf8 0%, var(--paper) 55%, #ece3d4 100%);
+}
+.hero .eyebrow{
+  margin:0; font-family:var(--f-ar-body); font-weight:300;
+  font-size:clamp(14px,3vw,18px); line-height:1.8; color:var(--ink-soft);
+}
+.hero .names{
+  margin:0; font-family:var(--f-ar-display); font-weight:400;
+  font-size:calc(clamp(38px,9.2vw,84px) * var(--name-scale));
+  line-height:var(--name-lh);
+  color:var(--wax);                       /* oxblood, matching the seal */
+  padding:.08em 0 .14em;
+}
+/* the conjunction steps back so the two names read as the pair */
+.hero .names .amp{color:var(--wax); opacity:.5; padding:0 .06em}
+.hero .rule{width:88px; height:1px; background:linear-gradient(90deg,transparent,var(--gold),transparent)}
+.hero .date{
+  margin:0; font-family:var(--f-ar-body); font-weight:300;
+  font-size:clamp(14px,3vw,18px); line-height:1.7; color:var(--ink-soft);
+}
+.hero .venue{
+  margin:0; font-family:var(--f-ar-body); font-weight:300;
+  font-size:clamp(13px,2.8vw,17px); line-height:1.9; color:var(--ink-soft);
+  max-width:32ch;                 /* Arabic runs long — let it wrap */
+}
+.hero .eyebrow,.hero .date{max-width:34ch}
+/* what the evening is, set small and spaced above the names so it reads as
+   a caption to them rather than competing with the calligraphy */
+.hero .occasion{
+  margin:0; font-family:var(--f-ar-body); font-weight:300;
+  font-size:clamp(13px,2.9vw,17px); letter-spacing:.22em;
+  color:var(--gold);
+}
+.hero .time{
+  margin:0; font-family:var(--f-ar-body); font-weight:300;
+  font-size:clamp(14px,3vw,18px); line-height:1.7; color:var(--ink-soft);
+}
+
+/* ==================================================================
+   THE DETAILS
+
+   One block rather than three stacked full-height sections: the countdown,
+   the month and the venue are three facts about one evening, and giving
+   each its own screen made the page longer than it had anything to say.
+   Narrow screens stack them with a hairline between; from 820px the month
+   moves alongside, which takes roughly a screen out of the scroll.
+   ================================================================== */
+.details{
+  display:grid; justify-items:center;
+  gap:clamp(22px,3.6vh,38px);
+  padding:clamp(30px,5vh,56px) 22px clamp(40px,7vh,74px);
+}
+.blk{
+  position:relative; width:100%;
+  display:flex; flex-direction:column; align-items:center;
+  gap:clamp(9px,1.7vh,16px);
+  text-align:center;
+}
+.blk + .blk{padding-top:clamp(22px,3.6vh,38px)}
+.blk + .blk::before{
+  content:""; position:absolute; top:0; left:50%; translate:-50% 0;
+  width:min(66%,290px); height:1px;
+  background:linear-gradient(90deg,transparent,rgba(163,133,76,.42),transparent);
+}
+.s-label{
+  margin:0; font-family:var(--f-ar-body); font-weight:300;
+  font-size:clamp(12px,2.7vw,15px); letter-spacing:.2em;
+  color:var(--ink-soft);
+}
+
+@media (min-width:820px){
+  .details{
+    grid-template-columns:minmax(0,1fr) auto;
+    column-gap:clamp(34px,5vw,70px);
+    row-gap:clamp(20px,3.2vh,34px);
+    align-items:center;
+    max-width:920px; margin-inline:auto;
+    padding-block:clamp(34px,5.5vh,64px) clamp(44px,7vh,78px);
+  }
+  /* the month spans both rows; the countdown and the venue stack beside it */
+  .blk-count{grid-column:1; grid-row:1; align-self:end}
+  .blk-cal  {grid-column:2; grid-row:1 / span 2}
+  .blk-venue{grid-column:1; grid-row:2; align-self:start}
+  .blk + .blk{padding-top:0}
+  .blk-cal::before{display:none}          /* no rule across the columns */
+  /* needs to out-rank `.blk + .blk` above, which is why it is not just
+     `.blk-venue` — that loses on specificity, not source order */
+  .blk + .blk.blk-venue{padding-top:clamp(20px,3vh,32px)}
+}
+
+/* ---------- countdown ----------
+   Hairlines between the units rather than boxes: the page is paper, and
+   four bordered tiles would read as an interface sitting on top of it. */
+.clock{display:flex; align-items:flex-start; justify-content:center}
+.clock .unit{
+  display:flex; flex-direction:column; align-items:center; gap:calc(4px + .4vh);
+  padding:0 clamp(8px,2.8vw,22px);
+  /* the label under each number is inflected by that number, so its width
+     changes as the clock runs (ثانية → ثوانٍ → ثانيتان). A fixed track keeps
+     the whole row still instead of nudging its neighbours every second. */
+  min-width:clamp(68px,19.5vw,104px);
+}
+.clock .unit + .unit{border-inline-start:1px solid rgba(163,133,76,.26)}
+/* Readex Pro, not the Playfair used elsewhere for figures: with
+   locale -nu-arab these are Arabic-Indic digits (٠١٢٣), which a Latin
+   serif has no glyphs for and would silently fall back to a system font. */
+.clock .n{
+  font-family:var(--f-ar-body); font-weight:300;
+  font-size:clamp(28px,7.4vw,50px); line-height:1.05;
+  color:var(--wax);
+  /* the seconds tick every second — tabular figures keep the row still */
+  font-variant-numeric:tabular-nums; font-feature-settings:"tnum" 1;
+}
+.clock .u{
+  font-family:var(--f-ar-body); font-weight:300;
+  font-size:clamp(10px,2.4vw,13px); line-height:1.5;
+  color:var(--ink-soft);
+}
+.clock[hidden]{display:none}
+.clock-now{
+  margin:0; font-family:var(--f-ar-display); font-weight:400;
+  font-size:calc(clamp(26px,7vw,46px) * var(--name-scale));
+  line-height:var(--name-lh1); color:var(--wax); padding:.08em 0 .16em;
+}
+
+/* ---------- the month, with the date marked ---------- */
+.cal-card{
+  width:min(322px,100%);
+  padding:clamp(13px,3.6vw,20px) clamp(12px,3.2vw,18px);
+  border-radius:14px;
+  background-image:var(--tex), linear-gradient(#fdfcfa,#f7f5f0);
+  background-size:var(--tex-size), auto;
+  background-blend-mode:var(--tex-blend);
+  border:1px solid rgba(163,133,76,.2);
+  box-shadow:0 1px 2px rgba(96,76,44,.06), 0 16px 36px rgba(96,76,44,.12);
+}
+.cal-month{
+  margin:0 0 clamp(8px,2.2vw,13px);
+  font-family:var(--f-ar-body); font-weight:400;
+  font-size:clamp(14px,3.2vw,17px); color:var(--ink);
+}
+.cal-grid{display:grid; grid-template-columns:repeat(7,1fr); gap:clamp(1px,.7vw,4px)}
+.cal-grid .dow{
+  font-family:var(--f-ar-body); font-weight:300;
+  font-size:clamp(10px,2.3vw,12px); color:rgba(123,112,96,.62);
+  padding-bottom:calc(4px + .6vw);
+}
+.cal-grid .d{
+  position:relative; aspect-ratio:1;
+  display:grid; place-items:center;
+  font-family:var(--f-ar-body); font-weight:300;   /* carries Arabic digits */
+  font-size:clamp(11px,2.7vw,14px); color:var(--ink-soft);
+  font-variant-numeric:tabular-nums;
+}
+.cal-grid .d.pad{visibility:hidden}       /* the days before the 1st */
+.cal-grid .d span{position:relative}      /* the number, over the heart */
+.cal-grid .d.on{color:var(--paper); font-weight:400}
+.cal-grid .d.on .heart{
+  position:absolute; inset:-2%;
+  width:104%; height:104%;
+  fill:var(--wax);
+  transform:rotate(-5deg);                /* stamped by hand, like the seal */
+  filter:drop-shadow(0 2px 5px rgba(122,42,48,.34));
+}
+
+/* ---------- venue ---------- */
+.v-name{
+  margin:0; font-family:var(--f-display); font-weight:500;
+  font-size:clamp(21px,5.4vw,34px); line-height:1.3; color:var(--ink);
+  letter-spacing:.01em;
+}
+.v-addr{
+  margin:0; font-family:var(--f-ar-body); font-weight:300;
+  font-size:clamp(13px,2.8vw,16px); line-height:1.9;
+  color:var(--ink-soft); max-width:34ch;
+}
+.v-map{
+  display:inline-flex; align-items:center; gap:.6em;
+  margin-top:calc(2px + .6vh);
+  padding:.72em 1.5em;
+  font-family:var(--f-ar-body); font-weight:300;
+  font-size:clamp(13px,2.8vw,15px);
+  color:var(--ink); text-decoration:none;
+  border:1px solid rgba(163,133,76,.5);
+  border-radius:999px;
+  background:rgba(255,253,248,.5);
+  transition:background .35s var(--ease-soft), border-color .35s var(--ease-soft),
+             transform .35s var(--ease-soft), box-shadow .35s var(--ease-soft);
+}
+.v-map svg{width:1.15em; height:1.15em; color:var(--gold); flex:none}
+.v-map:hover,.v-map:focus-visible{
+  background:rgba(255,253,248,.95);
+  border-color:var(--gold);
+  transform:translateY(-1px);
+  box-shadow:0 6px 18px rgba(96,76,44,.14);
+}
+.v-map:active{transform:translateY(0)}
+
+/* Latin names in an RTL page: isolate them so the bidi algorithm cannot
+   drag neighbouring punctuation to the wrong end */
+[dir="ltr"]{unicode-bidi:isolate}
+
+@media (prefers-reduced-motion:reduce){
+  /* the staged animations above are `forwards`, so a zero duration and no
+     delay lands each element on its end state without any staggering */
+  *{animation-duration:.01ms !important; animation-iteration-count:1 !important;
+    animation-delay:0s !important;
+    transition-duration:.25s !important; transition-delay:0s !important}
+  .dust{display:none}
+}
+</style>
+<script>window.FX_NO_DUST=true</script>
+<style>
+/* ---- atmosphere: foil shimmer sweep ---- */
+.dust{display:none}
+
+/* the band is masked by the seal's own alpha, so it only lights the wax */
+.seal::after{
+  content:""; position:absolute; inset:0; pointer-events:none;
+  -webkit-mask-image:url("assets/seal-silver.png");  mask-image:url("assets/seal-silver.png");
+  -webkit-mask-size:contain;   mask-size:contain;
+  -webkit-mask-repeat:no-repeat; mask-repeat:no-repeat;
+  -webkit-mask-position:center; mask-position:center;
+  background:linear-gradient(102deg,
+      transparent 40%, rgba(255,236,208,.78) 50%, transparent 60%);
+  background-size:300% 100%;
+  background-position:150% 0;
+  mix-blend-mode:screen;
+}
+.seal.sweep::after{animation:sweep 1.6s cubic-bezier(.36,0,.2,1)}
+
+/* the same band travelling the foil rules — masked to the border only */
+.foil-frame::before{
+  content:""; position:absolute; inset:0; pointer-events:none;
+  padding:1px;
+  background:linear-gradient(102deg,
+      transparent 42%, rgba(255,240,214,.9) 50%, transparent 58%);
+  background-size:300% 100%;
+  background-position:150% 0;
+  -webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite:xor;  mask-composite:exclude;
+}
+.foil-frame.sweep::before{animation:sweep 1.6s cubic-bezier(.36,0,.2,1)}
+
+@keyframes sweep{
+  from{background-position:150% 0}
+  to  {background-position:-70% 0}
+}
+
+.fx-badge{
+  position:fixed; left:14px; bottom:14px; z-index:999;
+  font:400 9.5px/1 "Jost",sans-serif; letter-spacing:.3em; text-transform:uppercase;
+  color:rgba(246,241,232,.42); background:rgba(0,0,0,.32);
+  padding:8px 12px; border:1px solid rgba(246,241,232,.14); border-radius:2px;
+  pointer-events:none; backdrop-filter:blur(4px);
+}
+</style>
+</head>
+<body class="locked">
+
+<!-- ==================== COVER ==================== -->
+<div id="cover" role="button" tabindex="0" aria-label="Open the invitation">
+  <div class="env-frame" id="frame">
+    <div class="env-tilt">
+    <div class="envelope">
+      <div class="env-face env-sheet"><span class="stock"><i></i></span></div>
+
+      <div class="letter">
+        <span class="stock"><i></i></span>
+        <span class="l-eyebrow" id="let-eyebrow"></span>
+        <span class="l-names"><span id="let-a"></span><span class="amp" id="let-amp"></span><span id="let-b"></span></span>
+        <span class="l-rule"></span>
+        <span class="l-date" id="let-date"></span>
+      </div>
+
+      <div class="shadow-pocket"><div class="env-face env-pocket"><span class="stock"><i></i></span></div></div>
+
+      <div class="face-text">
+        <p class="names"><span id="cov-a"></span><span class="amp" id="cov-amp"></span><span id="cov-b"></span></p>
+        <p class="welcome" id="cov-welcome"></p>
+        <p class="tap" id="cov-tap"></p>
+      </div>
+
+      <div class="shadow-flap"><div class="env-face env-flap"><span class="stock"><i></i></span></div></div>
+
+      <div class="wax-mark" aria-hidden="true"></div>
+
+      <div class="seal" id="seal">
+        <img src="assets/seal-silver.png" alt="" draggable="false">
+      </div>
+    </div>
+    </div>
+  </div>
+
+  <div class="lighting"></div>
+  <div class="vignette"></div>
+  <div class="dust" id="dust" aria-hidden="true"></div>
+</div>
+
+<!-- ==================== INVITATION ==================== -->
+<main id="invite">
+  <section class="hero">
+    <p class="eyebrow" id="hero-eyebrow"></p>
+    <p class="occasion" id="hero-occasion"></p>
+    <h1 class="names"><span id="hero-a"></span><span class="amp" id="hero-amp"></span><span id="hero-b"></span></h1>
+    <div class="rule"></div>
+    <p class="date" id="hero-date"></p>
+    <p class="time" id="hero-time"></p>
+  </section>
+
+  <section class="details">
+    <div class="blk blk-count">
+      <p class="s-label" id="cd-label"></p>
+      <!-- dir="ltr" so the units read days → seconds left to right, the way
+           a clock counts down, rather than mirrored by the RTL page -->
+      <div class="clock" id="clock" dir="ltr">
+        <span class="unit"><span class="n" id="cd-d">--</span><span class="u" id="cd-du"></span></span>
+        <span class="unit"><span class="n" id="cd-h">--</span><span class="u" id="cd-hu"></span></span>
+        <span class="unit"><span class="n" id="cd-m">--</span><span class="u" id="cd-mu"></span></span>
+        <span class="unit"><span class="n" id="cd-s">--</span><span class="u" id="cd-su"></span></span>
+      </div>
+      <p class="clock-now" id="cd-now" hidden></p>
+    </div>
+
+    <div class="blk blk-cal">
+      <div class="cal-card">
+        <p class="cal-month" id="cal-month"></p>
+        <div class="cal-grid" id="cal"></div>
+      </div>
+    </div>
+
+    <div class="blk blk-venue">
+      <p class="s-label" id="venue-label"></p>
+      <p class="v-name" id="venue-name"></p>
+      <p class="v-addr" id="venue-addr" hidden></p>
+      <a class="v-map" id="venue-map" target="_blank" rel="noopener noreferrer">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22s7-6.1 7-11.5A7 7 0 0 0 5 10.5C5 15.9 12 22 12 22z" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="12" cy="10.4" r="2.4" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
+        <span id="venue-cta"></span>
+      </a>
+    </div>
+  </section>
+</main>
+
+<script>
+/* ==================================================================
+   ▼▼▼  EDIT EVERYTHING HERE  ▼▼▼
+   ================================================================== */
+const CONFIG = {
+  /* --- names ---------------------------------------------------- */
+  partnerA:    "أحمد",
+  partnerB:    "عبير",
+  conjunction: "و",               // sits between the names, in wax red
+
+  /* the calligraphic hand for the names, everywhere they appear:
+     "ruqaa"    — Aref Ruqaa, the ceremonial Ruqaa hand
+     "nastaliq" — Noto Nastaliq, flowing diagonal calligraphy
+     Add ?font=nastaliq to any URL to preview the other one.        */
+  nameFont: "nastaliq",
+  sealImage:   "assets/seal-silver.png", // the wax stamp on the flap
+
+  /* --- date & time ----------------------------------------------
+     The time below is the wall clock in `timeZone`, not the guest's own —
+     a guest opening this abroad still counts down to 7pm in Amman.     */
+  date:          "2026-09-09",   // YYYY-MM-DD  (a Wednesday)
+  receptionTime: "17:00",        // 24h — when the countdown lands
+  endTime:       "20:00",        // 24h — leave "" to show a single time
+  timeZone:      "Asia/Amman",
+  weekStart:     0,              // the calendar's first column: 0 = Sunday
+
+  /* --- place -----------------------------------------------------
+     mapUrl: paste the venue's own Google Maps link here — share the pin
+     and copy the URL. Left empty, the button searches for venueName,
+     which lands close but not on the exact pin.                       */
+  venueName:    "Panorama Blue Venues",
+  venueAddress: "",              // ← add the street address when you have it
+  mapUrl:       "",
+
+  /* --- wording on the envelope ----------------------------------- */
+  coverWelcome: "يتشرفان بدعوتكم",
+  coverTap:     "اضغط لفتح الدعوة",
+  letterEyebrow:"يتشرفان بدعوتكم",
+  coverEyebrow: "بمشيئة الله وبركته",
+
+  /* --- wording inside -------------------------------------------- */
+  occasion:      "حفل خطوبة",              // the kicker above the names
+  countdownLabel:"باقٍ على الحفل",
+  countdownNow:  "اليوم هو اليوم",         // once the hour arrives
+
+  /* Arabic inflects a noun by the number counting it — 1 يوم، 2 يومان،
+     3–10 أيام، 11+ يوماً — so each unit carries its whole set and
+     Intl.PluralRules picks from it. The keys are CLDR plural categories;
+     a language that needs fewer of them just leaves `other` to do the work. */
+  units: [
+    {zero:"أيام",  one:"يوم",   two:"يومان",   few:"أيام",  many:"يوماً", other:"يوم"},
+    {zero:"ساعات", one:"ساعة",  two:"ساعتان",  few:"ساعات", many:"ساعة",  other:"ساعة"},
+    {zero:"دقائق", one:"دقيقة", two:"دقيقتان", few:"دقائق", many:"دقيقة", other:"دقيقة"},
+    {zero:"ثوانٍ", one:"ثانية", two:"ثانيتان", few:"ثوانٍ", many:"ثانية", other:"ثانية"}
+  ],
+  venueLabel:    "المكان",
+  mapCta:        "الموقع على خرائط جوجل",
+
+  /* --- how softly the folded paper edges are rounded --------------
+     As a fraction of the envelope's width. 0 = a sharp point.       */
+  tipRound:      0.075,   // the flap's point
+  shoulderRound: 0.022,   // where the flap's diagonals meet its sides
+  peakRound:     0.030,   // the bottom flap's peak
+
+  /* --- language ----------------------------------------------------
+     "ar-JO"          → Levantine month names (آذار), Western digits
+     "ar-JO-u-nu-arab" → the same, with Eastern Arabic digits (٢١)     */
+  dir:    "rtl",
+  locale: "ar-JO-u-nu-arab"
+};
+/* ==================================================================
+   ▲▲▲  END OF EDITABLE CONFIG  ▲▲▲
+   ================================================================== */
+
+const $ = s => document.querySelector(s);
+const set = (sel, txt) => { const el = $(sel); if (el) el.textContent = txt; };
+
+/* ------------------------------------------------------------------
+   THE DATE, PINNED TO THE VENUE'S CLOCK
+
+   `new Date("2026-09-09T19:00")` means 7pm wherever the guest happens to
+   be standing. Family abroad would get a countdown hours out of step, and
+   near midnight even the weekday could come out wrong. So the wall-clock
+   time is resolved against CONFIG.timeZone, and every format call below
+   is given that zone too.
+   ------------------------------------------------------------------ */
+function zoneOffsetMs(instant, tz){
+  try{
+    const name = new Intl.DateTimeFormat("en-US",{timeZone:tz, timeZoneName:"longOffset"})
+      .formatToParts(instant).find(p => p.type === "timeZoneName").value;   // "GMT+03:00"
+    const m = /GMT([+-])(\d{1,2})(?::(\d{2}))?/.exec(name);
+    if (!m) return null;                       // "GMT" itself, i.e. zero
+    return (m[1] === "-" ? -1 : 1) * ((+m[2]) * 60 + (+(m[3] || 0))) * 60000;
+  }catch{ return null; }                       // unknown zone, or no longOffset
+}
+function zonedDate(dateStr, timeStr, tz){
+  const asUTC = new Date(`${dateStr}T${timeStr}:00Z`);
+  const off = zoneOffsetMs(asUTC, tz);
+  if (off === null) return new Date(`${dateStr}T${timeStr}:00`);   // fall back to local
+  /* resolve twice: the first guess can land on the far side of a DST
+     change, in which case the offset in force is the one at the result */
+  const once = new Date(asUTC - off);
+  return new Date(asUTC - (zoneOffsetMs(once, tz) ?? off));
+}
+
+const eventDate = new Date(zonedDate(CONFIG.date, CONFIG.receptionTime, CONFIG.timeZone));
+const inZone = o => eventDate.toLocaleString(CONFIG.locale, {timeZone:CONFIG.timeZone, ...o});
+
+const longDate = [
+  inZone({weekday:"long"}),
+  inZone({day:"numeric", month:"long"}),
+  inZone({year:"numeric"})
+].join(" · ");
+
+/* the evening's window, e.g. ٥:٠٠ – ٨:٠٠ م. formatRange places the dash and
+   collapses the shared meridiem the way the locale expects — building the
+   string by hand would get both wrong in Arabic. */
+const timeFmt = new Intl.DateTimeFormat(CONFIG.locale,
+  {timeZone:CONFIG.timeZone, hour:"numeric", minute:"2-digit"});
+let endDate = CONFIG.endTime
+  ? zonedDate(CONFIG.date, CONFIG.endTime, CONFIG.timeZone) : null;
+/* an end time earlier than the start means the party runs past midnight */
+if (endDate && endDate <= eventDate) endDate = new Date(+endDate + 864e5);
+
+const longTime = (endDate && timeFmt.formatRange)
+  ? timeFmt.formatRange(eventDate, endDate)
+  : timeFmt.format(eventDate);
+
+/* ---------- fill ---------- */
+document.documentElement.dir = CONFIG.dir;
+document.documentElement.dataset.namefont =
+  new URLSearchParams(location.search).get("font") || CONFIG.nameFont;
+document.title = `${CONFIG.partnerA} ${CONFIG.conjunction} ${CONFIG.partnerB}`;
+
+/* the names appear in three places, all with the conjunction between */
+for (const [a, amp, b] of [["#cov-a","#cov-amp","#cov-b"],
+                           ["#let-a","#let-amp","#let-b"],
+                           ["#hero-a","#hero-amp","#hero-b"]]){
+  set(a,   CONFIG.partnerA);
+  set(amp, ` ${CONFIG.conjunction} `);
+  set(b,   CONFIG.partnerB);
+}
+
+set("#cov-welcome",  CONFIG.coverWelcome);
+set("#cov-tap",      CONFIG.coverTap);
+$("#seal img").src = CONFIG.sealImage;
+
+set("#let-eyebrow",  CONFIG.letterEyebrow);
+set("#let-date",     longDate);
+
+set("#hero-eyebrow",  CONFIG.coverEyebrow);
+set("#hero-occasion", CONFIG.occasion);
+set("#hero-date",     longDate);
+set("#hero-time",     longTime);
+
+/* ---------- venue ---------- */
+set("#venue-label", CONFIG.venueLabel);
+set("#venue-cta",   CONFIG.mapCta);
+
+const venueName = $("#venue-name");
+venueName.textContent = CONFIG.venueName;
+/* a Latin venue name in an RTL page needs its own direction, or the bidi
+   algorithm reorders it against the surrounding Arabic */
+if (!/[\u0600-\u06FF]/.test(CONFIG.venueName)) venueName.dir = "ltr";
+
+if (CONFIG.venueAddress){
+  set("#venue-addr", CONFIG.venueAddress);
+  $("#venue-addr").hidden = false;
+}
+
+/* a pasted pin if there is one, otherwise a search that lands on the place */
+$("#venue-map").href = CONFIG.mapUrl ||
+  "https://www.google.com/maps/search/?api=1&query=" +
+  encodeURIComponent([CONFIG.venueName, CONFIG.venueAddress].filter(Boolean).join(", "));
+
+/* ==================================================================
+   THE MONTH, WITH THE DATE MARKED
+
+   Built from CONFIG.date's own digits rather than from `eventDate`, so the
+   grid can never slip a day for a guest in another timezone. All the cell
+   dates are handled in UTC for the same reason — the calendar is a printed
+   month, not an instant in time.
+   ================================================================== */
+const HEART = '<svg class="heart" viewBox="0 0 24 24" aria-hidden="true">' +
+  '<path d="M12 21.3l-1.5-1.35C5.4 15.3 2 12.2 2 8.4 2 5.3 4.4 3 7.5 3c1.7 0 3.4.8 4.5 2.1' +
+  'C13.1 3.8 14.8 3 16.5 3 19.6 3 22 5.3 22 8.4c0 3.8-3.4 6.9-8.5 11.55L12 21.3z"/></svg>';
+
+(function buildCalendar(){
+  const host = $("#cal");
+  const [Y, M, D] = CONFIG.date.split("-").map(Number);        // M is 1-based
+  const utc = (y, m, d) => new Date(Date.UTC(y, m, d));
+  const days  = utc(Y, M, 0).getUTCDate();                     // day 0 of next month
+  const start = CONFIG.weekStart ?? 0;
+  const lead  = (utc(Y, M - 1, 1).getUTCDay() - start + 7) % 7;
+
+  const dow = new Intl.DateTimeFormat(CONFIG.locale, {weekday:"narrow", timeZone:"UTC"});
+  const num = new Intl.NumberFormat(CONFIG.locale, {useGrouping:false});
+
+  const cells = [];
+  /* 2021-08-01 was a Sunday, so it seeds the weekday row at any offset */
+  for (let i = 0; i < 7; i++)
+    cells.push(`<span class="dow">${dow.format(utc(2021, 7, 1 + ((start + i) % 7)))}</span>`);
+  for (let i = 0; i < lead; i++)
+    cells.push('<span class="d pad"></span>');
+  for (let day = 1; day <= days; day++)
+    cells.push(day === D
+      ? `<span class="d on" aria-current="date">${HEART}<span>${num.format(day)}</span></span>`
+      : `<span class="d"><span>${num.format(day)}</span></span>`);
+
+  host.innerHTML = cells.join("");
+  set("#cal-month", new Intl.DateTimeFormat(CONFIG.locale,
+    {month:"long", year:"numeric", timeZone:"UTC"}).format(utc(Y, M - 1, D)));
+})();
+
+/* ==================================================================
+   COUNTDOWN
+   ================================================================== */
+(function countdown(){
+  const label = $("#cd-label"), clock = $("#clock"), now = $("#cd-now");
+  const cell = [$("#cd-d"), $("#cd-h"), $("#cd-m"), $("#cd-s")];
+  const unit = [$("#cd-du"), $("#cd-hu"), $("#cd-mu"), $("#cd-su")];
+
+  set("#cd-label", CONFIG.countdownLabel);
+
+  /* two digits, in whichever numbering system the locale asks for */
+  const two = new Intl.NumberFormat(CONFIG.locale,
+    {minimumIntegerDigits:2, useGrouping:false});
+  const plural = new Intl.PluralRules(CONFIG.locale);
+  const word = (i, n) => { const u = CONFIG.units[i]; return u[plural.select(n)] ?? u.other; };
+
+  let timer;
+  function tick(){
+    const left = eventDate - Date.now();
+    if (left <= 0){                       // the evening has arrived
+      clearInterval(timer);
+      label.hidden = clock.hidden = true;
+      set("#cd-now", CONFIG.countdownNow);
+      now.hidden = false;
+      return;
+    }
+    /* recomputed from the absolute difference every tick, so a phone that
+       sleeps mid-countdown wakes up showing the right numbers */
+    const s = Math.floor(left / 1000);
+    const parts = [Math.floor(s / 86400), Math.floor(s / 3600) % 24,
+                   Math.floor(s / 60) % 60, s % 60];
+    parts.forEach((v, i) => {
+      const n = two.format(v), w = word(i, v);
+      /* only touch the DOM on a real change — three of these four are
+         unchanged on any given second */
+      if (cell[i].textContent !== n) cell[i].textContent = n;
+      if (unit[i].textContent !== w) unit[i].textContent = w;
+    });
+  }
+  tick();
+  timer = setInterval(tick, 1000);
+})();
+
+/* ==================================================================
+   FOLDED-PAPER SILHOUETTES
+
+   Thick cotton paper never folds to a sharp point — every corner of a
+   flap is a soft curve. A CSS polygon can't express that (its percentages
+   distort with the element's aspect ratio), so both silhouettes are built
+   as pixel-accurate paths and rebuilt whenever the size changes.
+   ================================================================== */
+const supportsPath = CSS.supports("clip-path", 'path("M0,0 L1,0 Z")');
+const f2 = v => v.toFixed(2);
+
+/* the point `r` px before `p`, coming from `q` */
+function toward(p, q, r){
+  const dx = q.x - p.x, dy = q.y - p.y;
+  const len = Math.hypot(dx, dy) || 1;
+  return { x: p.x + dx/len*r, y: p.y + dy/len*r };
+}
+const gap = (a,b) => Math.hypot(b.x-a.x, b.y-a.y);
+
+/* a closed path through `pts`, with each corner rounded by radii[i] */
+function roundedPath(pts, radii){
+  const n = pts.length;
+  let d = "";
+  for (let i = 0; i < n; i++){
+    const p = pts[i], prev = pts[(i-1+n)%n], next = pts[(i+1)%n];
+    const r = Math.min(radii[i] || 0, gap(p,prev)/2, gap(p,next)/2);
+    if (r <= 0.5){
+      d += `${i ? " L" : "M"}${f2(p.x)},${f2(p.y)}`;
+      continue;
+    }
+    const a = toward(p, prev, r);        // ease in off the previous edge
+    const b = toward(p, next, r);        // ease out onto the next one
+    d += `${i ? " L" : "M"}${f2(a.x)},${f2(a.y)} Q${f2(p.x)},${f2(p.y)} ${f2(b.x)},${f2(b.y)}`;
+  }
+  return d + " Z";
+}
+
+function shapeEnvelope(){
+  const frame = $("#frame");
+  const W = frame.clientWidth, H = frame.clientHeight;
+  if (!W || !H) return;
+
+  /* everything on the envelope is sized off its width; the wording is
+     additionally capped by the height available beneath the flap */
+  frame.style.setProperty("--u",  W + "px");
+  frame.style.setProperty("--tu", Math.min(W, H * 0.56) + "px");
+  if (!supportsPath) return;             // the CSS polygon fallback stands
+
+  const css = getComputedStyle(frame);
+  const pct = name => parseFloat(css.getPropertyValue(name)) / 100;
+  const corner   = parseFloat(css.getPropertyValue("--corner")) || 0;
+  const shoulder = H * pct("--shoulder");
+  const tipY     = H * pct("--flap");
+  const peakY    = H * pct("--peak");
+  const outY     = H * pct("--peak-out");
+
+  const rTip  = W * CONFIG.tipRound;
+  const rShld = W * CONFIG.shoulderRound;
+  const rPeak = W * CONFIG.peakRound;
+
+  /* top flap: down the sides to the shoulder, then in to the tip */
+  $(".env-flap").style.clipPath = `path("${roundedPath(
+    [ {x:0, y:0}, {x:W, y:0}, {x:W, y:shoulder}, {x:W/2, y:tipY}, {x:0, y:shoulder} ],
+    [ corner,     corner,     rShld,             rTip,            rShld ]
+  )}")`;
+
+  /* bottom flap: up to a peak in the middle, square to the bottom corners */
+  $(".env-pocket").style.clipPath = `path("${roundedPath(
+    [ {x:0, y:outY}, {x:W/2, y:peakY}, {x:W, y:outY}, {x:W, y:H}, {x:0, y:H} ],
+    [ 0,             rPeak,            0,             corner,     corner ]
+  )}")`;
+
+}
+
+/* ---------- dust motes ---------- */
+(function dust(){
+  const host = $("#dust");
+  if (window.FX_NO_DUST) return;                      // an atmosphere variant is driving instead
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  for (let i = 0; i < 18; i++){
+    const d = document.createElement("i");
+    const s = 2 + Math.random()*2.2;
+    d.style.width = d.style.height = s + "px";
+    d.style.left  = Math.random()*100 + "vw";
+    d.style.animationDuration = (18 + Math.random()*20) + "s";
+    d.style.animationDelay    = (-Math.random()*34) + "s";
+    d.style.setProperty("--dx", (Math.random()*90 - 45) + "px");
+    d.style.opacity = .1 + Math.random()*.22;
+    host.appendChild(d);
+  }
+})();
+
+/* ---------- open sequence ---------- */
+const cover = $("#cover");
+let opened = false;
+
+function openInvitation(instant){
+  if (opened) return;
+  opened = true;
+
+  if (instant){
+    cover.remove();
+    document.body.classList.remove("locked");
+    $("#invite").classList.add("in");
+    return;
+  }
+
+  cover.classList.add("opening");
+
+  /* seal 0–0.82s · mark 0.16–0.86s · flap 0.32–1.92s · card 1.15–2.45s.
+     The handover waits for the card to come to rest; with reduced motion
+     everything has already snapped to its end state, so it comes at once. */
+  const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const handover = reduced ? 260 : 2550;
+
+  setTimeout(() => {
+    cover.classList.add("done");
+    $("#invite").classList.add("in");
+    document.body.classList.remove("locked");
+  }, handover);
+
+  setTimeout(() => cover.remove(), handover + 1400);
+}
+
+cover.addEventListener("click", () => openInvitation(false));
+cover.addEventListener("keydown", e => {
+  if (e.key === "Enter" || e.key === " "){ e.preventDefault(); openInvitation(false); }
+});
+
+shapeEnvelope();
+addEventListener("resize", () => requestAnimationFrame(shapeEnvelope), {passive:true});
+document.fonts?.ready.then(shapeEnvelope);
+
+/* ?open=1 skips the cover — handy while editing */
+if (new URLSearchParams(location.search).get("open") === "1") openInvitation(true);
+</script>
+<div class="fx-badge">Foil shimmer sweep</div>
+<script>
+/* ---- atmosphere: foil shimmer sweep ---- */
+(function(){
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const targets = [document.getElementById('seal'), document.querySelector('.foil-frame')]
+                    .filter(Boolean);
+  function sweep(){
+    for (const t of targets){
+      t.classList.remove('sweep');
+      void t.offsetWidth;            // restart the animation
+      t.classList.add('sweep');
+    }
+  }
+  setTimeout(sweep, 900);
+  setInterval(sweep, 12000);
+})();
+</script>
+</body>
+</html>
