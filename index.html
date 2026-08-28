@@ -395,6 +395,33 @@ html[data-namefont="nastaliq"]{
 }
 
 /* ==================================================================
+   ARRIVAL — the first paint eases in instead of snapping: the envelope
+   settles, the wording surfaces line by line, the seal presses in last.
+   Keyframes declare only a `from` and fill backwards, so each element
+   lands on its own natural styles and nothing fights the open sequence
+   (whose rules replace these animations outright).
+   ================================================================== */
+.env-frame{animation:env-arrive 1.1s var(--ease-soft) backwards}
+@keyframes env-arrive{from{opacity:0; transform:translateY(14px) scale(.99)}}
+
+.face-text .names  {animation:text-arrive .9s var(--ease-soft) .55s backwards}
+.face-text .welcome{animation:text-arrive .9s var(--ease-soft) .85s backwards}
+.face-text .tap{animation:text-arrive .9s var(--ease-soft) 1.15s backwards,
+                breathe 3.4s ease-in-out 2.1s infinite}
+@keyframes text-arrive{from{opacity:0; transform:translateY(10px)}}
+
+/* the wax lands slightly proud of the paper and settles flat */
+.seal    {animation:seal-arrive .7s cubic-bezier(.2,.7,.3,1) 1s backwards}
+.wax-mark{animation:mark-arrive .7s cubic-bezier(.2,.7,.3,1) 1s backwards}
+@keyframes seal-arrive{from{opacity:0; transform:rotate(-1deg) scale(1.12)}}
+@keyframes mark-arrive{from{opacity:0}}
+
+@media (prefers-reduced-motion: reduce){
+  .env-frame, .face-text .names, .face-text .welcome, .seal, .wax-mark{animation:none}
+  .face-text .tap{animation:breathe 3.4s ease-in-out infinite}
+}
+
+/* ==================================================================
    OPEN SEQUENCE
    ================================================================== */
 /* Every beat here is a keyframe animation rather than a transition. A
