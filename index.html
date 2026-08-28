@@ -90,28 +90,37 @@
   --ease-seal:cubic-bezier(.32,0,.24,1);
 
   /* ---------- paper texture tiles ----------
-     Raw fractal noise, desaturated, contrast-stretched around a 0.5 mean
-     so blending adds variation without shifting the panel's tone.
+     The grain lives in each tile's ALPHA channel — a faint dark speckle
+     and a faint light speckle composited normally, one pigment per tile.
+     The previous tiles were opaque mid-grey and depended on overlay /
+     soft-light blending to vanish into the cream; some phone compositors
+     silently drop background-blend-mode inside GPU-composited 3D
+     subtrees, and an unblended grey tile is a fully grey envelope.
+     Alpha needs no blending, so this renders the same everywhere.
      (feDiffuseLighting renders nearly flat in Chrome — do not use it.)  */
-  --relief-coarse:url("data:image/svg+xml;utf8,\
+  --grain-coarse-d:url("data:image/svg+xml;utf8,\
 <svg xmlns='http://www.w3.org/2000/svg' width='620' height='620'>\
 <filter id='c' x='0' y='0' width='100%25' height='100%25'><feTurbulence type='fractalNoise' stitchTiles='stitch' baseFrequency='0.05' numOctaves='5' seed='14'/>\
-<feColorMatrix type='saturate' values='0'/>\
-<feComponentTransfer><feFuncR type='linear' slope='1.14' intercept='-.07'/>\
-<feFuncG type='linear' slope='1.14' intercept='-.07'/><feFuncB type='linear' slope='1.14' intercept='-.07'/>\
-<feFuncA type='linear' slope='0' intercept='1'/></feComponentTransfer>\
+<feColorMatrix type='matrix' values='0 0 0 0 .32  0 0 0 0 .30  0 0 0 0 .26  .24 0 0 0 -.10'/>\
 </filter><rect width='620' height='620' filter='url(%23c)'/></svg>");
 
-  --relief-fine:url("data:image/svg+xml;utf8,\
+  --grain-coarse-l:url("data:image/svg+xml;utf8,\
+<svg xmlns='http://www.w3.org/2000/svg' width='620' height='620'>\
+<filter id='c' x='0' y='0' width='100%25' height='100%25'><feTurbulence type='fractalNoise' stitchTiles='stitch' baseFrequency='0.05' numOctaves='5' seed='23'/>\
+<feColorMatrix type='matrix' values='0 0 0 0 1  0 0 0 0 .99  0 0 0 0 .95  0 .34 0 0 -.12'/>\
+</filter><rect width='620' height='620' filter='url(%23c)'/></svg>");
+
+  --grain-fine-d:url("data:image/svg+xml;utf8,\
 <svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'>\
 <filter id='f' x='0' y='0' width='100%25' height='100%25'><feTurbulence type='fractalNoise' stitchTiles='stitch' baseFrequency='0.5' numOctaves='3' seed='7'/>\
-<feColorMatrix type='saturate' values='0'/>\
-<feComponentTransfer><feFuncR type='linear' slope='1.12' intercept='-.06'/>\
-<feFuncG type='linear' slope='1.12' intercept='-.06'/><feFuncB type='linear' slope='1.12' intercept='-.06'/>\
-<feFuncA type='linear' slope='0' intercept='1'/></feComponentTransfer>\
+<feColorMatrix type='matrix' values='0 0 0 0 .32  0 0 0 0 .30  0 0 0 0 .26  .28 0 0 0 -.10'/>\
 </filter><rect width='200' height='200' filter='url(%23f)'/></svg>");
 
-
+  --grain-fine-l:url("data:image/svg+xml;utf8,\
+<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'>\
+<filter id='f' x='0' y='0' width='100%25' height='100%25'><feTurbulence type='fractalNoise' stitchTiles='stitch' baseFrequency='0.5' numOctaves='3' seed='11'/>\
+<feColorMatrix type='matrix' values='0 0 0 0 1  0 0 0 0 .99  0 0 0 0 .95  0 .30 0 0 -.10'/>\
+</filter><rect width='200' height='200' filter='url(%23f)'/></svg>");
 }
 
 *{box-sizing:border-box}
@@ -137,9 +146,11 @@ body.locked{overflow:hidden}
      fibre     — long fibres running through the pulp (soft-light)
      coarse@3x — the broad undulation of the sheet    (soft-light)  */
 :root{
-  --tex:var(--relief-fine), var(--relief-coarse), var(--relief-coarse);
-  --tex-size:200px 200px, 620px 620px, 1480px 1480px;
-  --tex-blend:overlay, soft-light, soft-light, normal;
+  --tex:var(--grain-fine-d), var(--grain-fine-l),
+        var(--grain-coarse-d), var(--grain-coarse-l),
+        var(--grain-coarse-l);
+  --tex-size:200px 200px, 200px 200px, 620px 620px, 620px 620px, 1480px 1480px;
+  --tex-blend:normal;
 }
 .stock{position:absolute; inset:0; pointer-events:none}
 
@@ -173,7 +184,10 @@ html[data-namefont="nastaliq"]{
 #cover::after{
   content:""; position:absolute; inset:0; z-index:60;
   background:url("assets/paper.webp") top center / cover;
-  mix-blend-mode:multiply; opacity:.5;
+  /* no blend mode — mix-blend-mode is dropped by the same phone
+     compositors that drop the panel blending; a plain translucent
+     sheet reads the same and cannot fail */
+  opacity:.2;
   pointer-events:none;
 }
 #cover:focus-visible{outline:none}
@@ -228,7 +242,11 @@ html[data-namefont="nastaliq"]{
     var(--tex),
     radial-gradient(96% 120% at 50% 0%, #fdf9f2 0%, #f8f3ea 46%, #efe9dc 100%);
   background-size:var(--tex-size), auto;
-  background-position:30px 61px, 64px 141px, -420px -260px, 0 0;
+  /* six layers now: fine-d, fine-l, coarse-d, coarse-l, coarse@3x, gradient —
+     one offset per tile so panels don't share a visible pattern, and the
+     gradient LAST and at 0 0 (a shorter list cycles, and an offset gradient
+     wraps its dark end around the top as a hard band) */
+  background-position:30px 61px, 143px 22px, 64px 141px, -87px 233px, -420px -260px, 0 0;
   background-blend-mode:var(--tex-blend);
 }
 /* (the folded side-flap ridges that used to press through the pocket's
@@ -268,7 +286,7 @@ html[data-namefont="nastaliq"]{
     var(--tex),
     linear-gradient(176deg,#fffbf4 0%,#fbf7ef 44%,#f5f0e6 74%,#ece6d8 100%);
   background-size:var(--tex-size), auto;
-  background-position:187px 203px, 201px 57px, -160px -680px, 0 0;
+  background-position:187px 203px, 41px 97px, 201px 57px, -313px 179px, -160px -680px, 0 0;
   background-blend-mode:var(--tex-blend);
 }
 /* ---------- the birds, printed on the flap ----------
